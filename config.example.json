@@ -1,0 +1,23 @@
+{
+  "name": "Your first name",
+  "niche": "One sentence: who you are and what you post about on LinkedIn.",
+  "audience": "One sentence: who reads your posts.",
+  "formats": ["LinkedIn text posts", "carousels", "short videos", "newsletter"],
+  "pillars": {
+    "1": "Content pillar 1",
+    "2": "Content pillar 2",
+    "3": "Content pillar 3"
+  },
+  "creatorsILike": ["Names of 2-5 LinkedIn creators whose style you like"],
+  "avoid": ["Lead-magnet 'comment X for the doc' posts", "Generic AI takes"],
+  "searchKeywords": [
+    "LinkedIn algorithm", "LinkedIn reach", "impressions dropped", "LinkedIn video",
+    "LinkedIn hooks", "AI comments", "AI written posts", "LinkedIn newsletter",
+    "LinkedIn carousel", "personal branding"
+  ],
+  "language": "en",
+  "run": { "time": "08:00", "weekdaysOnly": true, "skipIfStartedAfter": "08:30" },
+  "slack": { "enabled": false, "selfDmUserId": "" },
+  "port": 8020,
+  "taplioLinkedInMcp": { "verifiedAt": null, "serverName": null }
+}

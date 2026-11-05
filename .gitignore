@@ -1,0 +1,9 @@
+# Your personal board stays on your computer
+config.json
+data/
+media/
+archive/
+.claude/settings.local.json
+__pycache__/
+*.pyc
+.DS_Store

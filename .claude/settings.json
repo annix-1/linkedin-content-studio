@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -I studio_cli.py:*)",
+      "Bash(python3 -I media_fetch.py:*)",
+      "Bash(python3 -I yt_frames.py:*)",
+      "Bash(python3 -I rss_fetch.py:*)",
+      "Bash(python3 -I server.py:*)",
+      "Bash(python3 --version)",
+      "Bash(date:*)",
+      "Bash(cd:*)",
+      "WebSearch",
+      "WebFetch(domain:www.socialmediatoday.com)",
+      "WebFetch(domain:www.youtube.com)",
+      "WebFetch(domain:www.reddit.com)",
+      "mcp__taplio__get_me",
+      "mcp__taplio__search_inspiration",
+      "mcp__taplio__find_comments_to_reply"
+    ],
+    "deny": [
+      "mcp__taplio__publish_draft",
+      "mcp__taplio__schedule_draft",
+      "mcp__taplio__commit_comment_draft",
+      "mcp__taplio__like_post",
+      "mcp__taplio__send_connection_request"
+    ]
+  }
+}
