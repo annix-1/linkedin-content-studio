@@ -41,7 +41,8 @@ Copy `config.example.json` to `config.json` and fill it from Step 3. Build `sear
   "mcp__taplio__get_me", "mcp__taplio__search_inspiration", "mcp__taplio__find_comments_to_reply"
 ] } }
 ```
-If they turned on Slack, add only the Slack send-message tool. Never allow Taplio tools that publish, schedule, comment or like.
+If their prefix is not `mcp__taplio__` (for example a connector added in the Claude app), also copy the `deny` list from `.claude/settings.json` into `settings.local.json` with their prefix, so every Taplio tool that writes, publishes, schedules, comments, likes or connects stays blocked.
+If they turned on Slack, add only the Slack send-message tool, and tell them it can technically post to any channel: the routine is instructed to DM only them. Never allow Taplio tools that publish, schedule, comment or like.
 
 ## Step 6: Start the board
 Run `cd "STUDIO" && python3 -I server.py` in the background and open http://localhost:8020 (or their port). If it prints the Taplio LinkedIn MCP message, go back to Step 1.

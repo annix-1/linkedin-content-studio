@@ -9,6 +9,12 @@ Every weekday morning, Claude scans what's happening on LinkedIn and fills a pri
 
 Everything stays on your computer. Nothing gets posted for you.
 
+![Today's board: cards from the morning scan, with the brief and trends on the right](docs/screenshots/today.png)
+
+| The glossary learns your patterns | The archive keeps every day |
+|---|---|
+| ![Glossary: hooks and patterns detected across what you saved](docs/screenshots/glossary.png) | ![Archive: one entry per day with the brief, saves, trends and ideas](docs/screenshots/archive.png) |
+
 > ⚠️ **Required: the Taplio LinkedIn MCP.** Content Studio reads LinkedIn through the Taplio LinkedIn MCP (trending posts, creators in your niche, the comments under them). It won't run without it, and the setup checks for it first.
 > - ▶️ 3-minute setup video: https://www.youtube.com/watch?v=afjA8ifgo6A
 > - 🔗 Get the Taplio LinkedIn MCP: https://taplio.com/taplio-linkedin-mcp

@@ -47,7 +47,27 @@ def load_config():
         return json.load(f)
 
 
+IMAGE_SIGS = (b"\xff\xd8\xff", b"\x89PNG", b"GIF8")
+DAY_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+PORT = 8020  # set at startup from config.json / $PORT
+
+
+def is_image(data):
+    return data.startswith(IMAGE_SIGS) or (data[:4] == b"RIFF" and data[8:12] == b"WEBP")
+
+
 class Handler(BaseHTTPRequestHandler):
+    def _local_only(self):
+        """Block other websites from reaching the board: DNS rebinding (Host) and
+        cross-site writes (Origin). Only pages served from this board may write."""
+        allowed = {f"localhost:{PORT}", f"127.0.0.1:{PORT}"}
+        if self.headers.get("Host", "") not in allowed:
+            self._send(403, {"error": "forbidden host"}); return False
+        origin = self.headers.get("Origin")
+        if self.command != "GET" and origin not in {f"http://{h}" for h in allowed}:
+            self._send(403, {"error": "forbidden origin"}); return False
+        return True
+
     def log_message(self, fmt, *args):
         if "/api/version" not in self.path:
             sys.stderr.write("%s %s\n" % (time.strftime("%H:%M:%S"), fmt % args))
@@ -58,6 +78,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(data)))
         self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "no-referrer")
         self.end_headers()
         self.wfile.write(data)
 
@@ -71,6 +93,8 @@ class Handler(BaseHTTPRequestHandler):
         return p, parts
 
     def do_GET(self):
+        if not self._local_only():
+            return
         p, parts = self._route()
         try:
             if not parts or parts == ["index.html"]:
@@ -88,7 +112,7 @@ class Handler(BaseHTTPRequestHandler):
                 if parts[1:2] == ["archive"]:
                     if len(parts) == 2:
                         return self._send(200, db.list_archive())
-                    a = db.read_archive(parts[2])
+                    a = db.read_archive(parts[2]) if DAY_RE.match(parts[2]) else None
                     return self._send(200 if a else 404, a or {"error": "no archive for that day"})
                 if len(parts) == 2:
                     return self._send(200, db.list_docs(parts[1]))
@@ -106,6 +130,8 @@ class Handler(BaseHTTPRequestHandler):
         self._write(merge=True)
 
     def _write(self, merge):
+        if not self._local_only():
+            return
         p, parts = self._route()
         if len(parts) != 3 or parts[0] != "api":
             return self._send(404, {"error": "not found"})
@@ -120,6 +146,8 @@ class Handler(BaseHTTPRequestHandler):
             self._send(400, {"error": str(e)})
 
     def do_DELETE(self):
+        if not self._local_only():
+            return
         p, parts = self._route()
         if len(parts) != 3 or parts[0] != "api":
             return self._send(404, {"error": "not found"})
@@ -129,6 +157,8 @@ class Handler(BaseHTTPRequestHandler):
             self._send(400, {"error": str(e)})
 
     def do_POST(self):
+        if not self._local_only():
+            return
         p, parts = self._route()
         if parts != ["api", "upload"]:
             return self._send(404, {"error": "not found"})
@@ -139,6 +169,8 @@ class Handler(BaseHTTPRequestHandler):
         body = self._body()
         if not body or len(body) > 8_000_000:
             return self._send(400, {"error": "Images must be under 8 MB."})
+        if not is_image(body):
+            return self._send(400, {"error": "That file is not a jpg, png, webp or gif image."})
         stem, ext = os.path.splitext(name)
         name = f"m-{stem[:40]}-{int(time.time())}{ext.lower()}"
         os.makedirs(db.MEDIA_DIR, exist_ok=True)
@@ -156,10 +188,10 @@ if __name__ == "__main__":
     if not (cfg.get("taplioLinkedInMcp") or {}).get("verifiedAt"):
         print(MCP_GATE)
         sys.exit(1)
-    port = int(os.environ.get("PORT") or cfg.get("port") or 8020)
+    PORT = int(os.environ.get("PORT") or cfg.get("port") or 8020)
     db.connect().close()
-    srv = ThreadingHTTPServer(("127.0.0.1", port), Handler)
-    print(f"Content Studio running at http://localhost:{port}")
+    srv = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
+    print(f"Content Studio running at http://localhost:{PORT}")
     try:
         srv.serve_forever()
     except KeyboardInterrupt:

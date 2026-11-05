@@ -386,6 +386,7 @@ var db=null,assets=null,userNs=null,canWrite=true;
 function isMedia(n){return typeof n==="string"&&/^[A-Za-z0-9._-]+\.(jpg|jpeg|png|webp|gif)$/i.test(n);}
 function mediaUrl(n){return "/media/"+encodeURIComponent(n);}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];});}
+function num(v,d){v=Number(v);return isFinite(v)&&v>0?v:d;}
 function safeUrl(u){u=String(u||"");return /^https?:\/\//i.test(u)?u:"";}
 function $(id){return document.getElementById(id);}
 function today(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
@@ -449,7 +450,7 @@ function framePos(f,i){var c=f.cols||1,r=f.rows||1,col=i%c,row=Math.floor(i/c);r
 function filmHtml(it,big){
   var f=it.frames;var secs=Math.round(((f.intervalMs||1000)*(f.count||1))/1000);
   var tall=(f.h||9)>(f.w||16);
-  return '<div class="film'+(big?" big":"")+(tall?" tall":"")+'" data-film="'+esc(it.id)+'" style="--ar:'+(f.w||16)+'/'+(f.h||9)+';background-image:url('+mediaUrl(f.asset)+');background-size:'+((f.cols||1)*100)+'% '+((f.rows||1)*100)+'%;background-position:'+framePos(f,0)+'" role="img" aria-label="Frames from the first '+secs+' seconds">'+
+  return '<div class="film'+(big?" big":"")+(tall?" tall":"")+'" data-film="'+esc(it.id)+'" style="--ar:'+num(f.w,16)+'/'+num(f.h,9)+';background-image:url('+mediaUrl(f.asset)+');background-size:'+((f.cols||1)*100)+'% '+((f.rows||1)*100)+'%;background-position:'+framePos(f,0)+'" role="img" aria-label="Frames from the first '+secs+' seconds">'+
     '<span class="filmbadge">'+ICON.play+' First '+secs+'s</span><span class="filmbar"><span></span></span></div>';
 }
 function mediaHtml(it,ar){
@@ -461,7 +462,7 @@ function cardHtml(it){
   var ars=["4/3","1/1","4/5","16/10"],ar=it.source==="youtube"?"16/9":ars[hash(it.id)%ars.length];
   var url=safeUrl(it.url),st=it.status||"new";
   var cls="card"+(st==="kept"?" kept":"")+(st==="rejected"?" passed":"");
-  var seen=(it.timesSeen||1)>1?'<span class="seen" title="Seen on '+it.timesSeen+' days">×'+esc(it.timesSeen)+'</span>':"";
+  var seen=(it.timesSeen||1)>1?'<span class="seen" title="Seen on '+num(it.timesSeen,1)+' days">×'+esc(it.timesSeen)+'</span>':"";
   var note=(it.likes||it.note)?'<p class="note-peek">'+esc((it.likes||it.note).slice(0,140))+'</p>':"";
   var ids=(it.ideaIds||[]).filter(function(x){return ideaById(x);}),first=ids.length?ideaById(ids[0]):null;
   var chip=first?'<span class="linkchip" title="Linked idea">↳ '+esc(first.title.slice(0,44))+(ids.length>1?" +"+(ids.length-1):"")+'</span>':"";
@@ -731,7 +732,7 @@ function openOverlay(html){
 function openItem(id){
   var it=itemById(id);if(!it)return;var url=safeUrl(it.url),st=it.status||"new";
   var h='<div class="dhead"><span class="eyebrow">'+esc(SOURCES[it.source]||"Web")+(it.firstSeen?" · first seen "+esc(fmtDate(it.firstSeen)):"")+'</span><button class="btn ghost" data-close="1">Close</button></div><div class="dbody">'+
-    (it.frames&&isMedia(it.frames.asset||"")?filmHtml(it,true)+'<div class="framestrip" id="d-strip">'+Array.apply(null,{length:it.frames.count||1}).map(function(_,i){return '<button type="button" data-f="'+i+'" aria-label="Frame '+(i+1)+'" style="background-image:url('+mediaUrl(it.frames.asset)+');background-size:'+((it.frames.cols||1)*100)+'% '+((it.frames.rows||1)*100)+'%;background-position:'+framePos(it.frames,i)+';aspect-ratio:'+(it.frames.w||16)+'/'+(it.frames.h||9)+'"></button>';}).join("")+'</div>':mediaHtml(it,it.source==="youtube"?"16/9":"16/10"))+
+    (it.frames&&isMedia(it.frames.asset||"")?filmHtml(it,true)+'<div class="framestrip" id="d-strip">'+Array.apply(null,{length:it.frames.count||1}).map(function(_,i){return '<button type="button" data-f="'+i+'" aria-label="Frame '+(i+1)+'" style="background-image:url('+mediaUrl(it.frames.asset)+');background-size:'+((it.frames.cols||1)*100)+'% '+((it.frames.rows||1)*100)+'%;background-position:'+framePos(it.frames,i)+';aspect-ratio:'+num(it.frames.w,16)+'/'+num(it.frames.h,9)+'"></button>';}).join("")+'</div>':mediaHtml(it,it.source==="youtube"?"16/9":"16/10"))+
     '<div class="tags">'+(it.tags||[]).map(tagHtml).join("")+'</div><h2>'+esc(it.title)+'</h2>'+
     '<div class="meta">'+(it.creator?'<span>'+esc(it.creator)+'</span>':"")+(it.signal?'<span>'+esc(it.signal)+'</span>':"")+((it.timesSeen||1)>1?'<span>seen on '+esc(it.timesSeen)+' days</span>':"")+'</div>'+
     '<div class="row-actions">'+(url?'<a class="btn" href="'+esc(url)+'" target="_blank" rel="noopener">Open original ↗</a>':"")+'<button class="btn ghost" id="d-link">Link to idea</button><button class="btn ghost" id="d-gloss">Add to glossary</button></div>'+
@@ -853,7 +854,7 @@ function liveGlossary(){return S.glossary.filter(function(t){return t.status!=="
 function gcardHtml(t){
   var u=safeUrl(t.source);
   var ev=(t.evidence||[]).map(itemById).filter(Boolean);
-  var auto=t.auto?'<span class="autotag">Detected'+(t.count||ev.length?' · in '+(t.count||ev.length)+' saved pieces':"")+'</span>':"";
+  var auto=t.auto?'<span class="autotag">Detected'+(t.count||ev.length?' · in '+num(t.count,ev.length)+' saved pieces':"")+'</span>':"";
   var kindName="";GLOSS_KINDS.forEach(function(k){if(k[0]===glossKind(t))kindName=k[1];});
   return '<article class="gcard'+(t.auto?" is-auto":"")+'" data-id="'+esc(t.id)+'">'+
     '<div class="gtop">'+auto+(t.auto?'<span class="gkind">'+esc(kindName)+'</span>':"")+'</div>'+

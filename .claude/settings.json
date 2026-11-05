@@ -20,9 +20,22 @@
     "deny": [
       "mcp__taplio__publish_draft",
       "mcp__taplio__schedule_draft",
+      "mcp__taplio__unschedule",
+      "mcp__taplio__create_draft",
+      "mcp__taplio__update_draft",
+      "mcp__taplio__delete_draft",
+      "mcp__taplio__create_comment_draft",
+      "mcp__taplio__update_comment_draft",
       "mcp__taplio__commit_comment_draft",
+      "mcp__taplio__cancel_comment_draft",
       "mcp__taplio__like_post",
-      "mcp__taplio__send_connection_request"
+      "mcp__taplio__cancel_like",
+      "mcp__taplio__send_connection_request",
+      "mcp__taplio__cancel_connection_request",
+      "mcp__taplio__upload_media",
+      "mcp__taplio__create_media_upload_url",
+      "mcp__taplio__attach_media_from_url",
+      "mcp__taplio__pick_media"
     ]
   }
 }

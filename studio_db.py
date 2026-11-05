@@ -4,7 +4,7 @@ One table of JSON documents keyed by (collection, id). Used by server.py (the
 board) and studio_cli.py (the morning routine), so the routine never needs the
 server running.
 """
-import json, os, sqlite3, threading, time
+import json, os, re, sqlite3, threading, time
 from datetime import date, datetime
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -214,8 +214,10 @@ def list_archive():
 
 
 def read_archive(day):
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", day or ""):
+        return None
     p = os.path.join(ARCHIVE_DIR, f"{day}.json")
-    if len(day) != 10 or not os.path.exists(p):
+    if not os.path.exists(p):
         return None
     with open(p) as f:
         return json.load(f)

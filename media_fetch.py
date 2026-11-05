@@ -7,7 +7,7 @@
 Prints one JSON line, e.g. {"thumb": "i-x.jpg"} or {"thumb": "i-x.jpg", "frames": {...}}
 or {"error": "..."}. Only real images under 2 MB are kept. Nothing downloaded is ever run.
 """
-import html, json, os, re, subprocess, sys, urllib.request
+import html, ipaddress, json, os, re, socket, subprocess, sys, urllib.parse, urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import studio_db as db
@@ -18,9 +18,31 @@ ID_RE = re.compile(r"^[A-Za-z0-9._-]{1,120}$")
 SIGS = [(b"\xff\xd8\xff", "jpg"), (b"\x89PNG", "png"), (b"GIF8", "gif")]
 
 
+def public_url(url):
+    """Only fetch public http(s) addresses: never this computer or the local network,
+    even if a scanned page or a redirect points there."""
+    u = urllib.parse.urlparse(url)
+    if u.scheme not in ("http", "https") or not u.hostname:
+        raise ValueError("only http(s) links")
+    for info in socket.getaddrinfo(u.hostname, u.port or (443 if u.scheme == "https" else 80)):
+        ip = ipaddress.ip_address(info[4][0])
+        if not ip.is_global:
+            raise ValueError("refused: link points to a private or local address")
+    return url
+
+
+class _CheckedRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        public_url(newurl)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+_opener = urllib.request.build_opener(_CheckedRedirect)
+
+
 def get(url, limit=MAX + 1):
-    req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept-Language": "en-US"})
-    with urllib.request.urlopen(req, timeout=15) as r:
+    req = urllib.request.Request(public_url(url), headers={"User-Agent": UA, "Accept-Language": "en-US"})
+    with _opener.open(req, timeout=15) as r:
         return r.read(limit)
 
 
